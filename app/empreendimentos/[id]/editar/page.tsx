@@ -4,17 +4,17 @@ import Link from "next/link"
 import { createServerClient } from "@/lib/supabase/server"
 import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { DashboardShell } from "@/components/dashboard/dashboard-shell"
+import { EmpreendimentoForm } from "@/components/empreendimentos/empreendimento-form"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft } from "lucide-react"
-import { ImportacaoUnidades } from "@/components/unidades/importacao-unidades"
 
-interface ImportarUnidadesPageProps {
+interface EditarEmpreendimentoPageProps {
   params: {
     id: string
   }
 }
 
-export async function generateMetadata({ params }: ImportarUnidadesPageProps): Promise<Metadata> {
+export async function generateMetadata({ params }: EditarEmpreendimentoPageProps): Promise<Metadata> {
   const supabase = createServerClient()
 
   const { data: empreendimento } = await supabase.from("empreendimentos").select("nome").eq("id", params.id).single()
@@ -26,12 +26,12 @@ export async function generateMetadata({ params }: ImportarUnidadesPageProps): P
   }
 
   return {
-    title: `Importar Unidades - ${empreendimento.nome} - Simulador AYA`,
-    description: `Importação de unidades para o empreendimento ${empreendimento.nome}`,
+    title: `Editar ${empreendimento.nome} - Simulador AYA`,
+    description: `Editar informações do empreendimento ${empreendimento.nome}`,
   }
 }
 
-export default async function ImportarUnidadesPage({ params }: ImportarUnidadesPageProps) {
+export default async function EditarEmpreendimentoPage({ params }: EditarEmpreendimentoPageProps) {
   const supabase = createServerClient()
 
   // Verificar se o usuário está autenticado
@@ -40,18 +40,6 @@ export default async function ImportarUnidadesPage({ params }: ImportarUnidadesP
   } = await supabase.auth.getSession()
   if (!session) {
     redirect("/login")
-  }
-
-  // Verificar se o usuário tem permissão para editar o empreendimento
-  const { data: permissao } = await supabase.rpc("usuario_tem_permissao", {
-    p_usuario_id: session.user.id,
-    p_modulo: "empreendimentos",
-    p_acao: "editar",
-    p_recurso_id: params.id,
-  })
-
-  if (!permissao) {
-    redirect(`/empreendimentos/${params.id}?error=Sem permissão para importar unidades`)
   }
 
   // Buscar dados do empreendimento
@@ -76,12 +64,11 @@ export default async function ImportarUnidadesPage({ params }: ImportarUnidadesP
         </Button>
       </div>
 
-      <DashboardHeader
-        heading={`Importar Unidades - ${empreendimento.nome}`}
-        text="Importe unidades a partir de um arquivo CSV ou Excel (.xlsx)"
-      />
+      <DashboardHeader heading={`Editar ${empreendimento.nome}`} text="Atualize as informações do empreendimento" />
 
-      <ImportacaoUnidades empreendimentoId={params.id} />
+      <div className="grid gap-6">
+        <EmpreendimentoForm empreendimento={empreendimento} />
+      </div>
     </DashboardShell>
   )
 }

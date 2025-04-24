@@ -6,7 +6,9 @@ import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { DashboardShell } from "@/components/dashboard/dashboard-shell"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, Building2, MapPin, FileText, DollarSign, Upload } from "lucide-react"
+import { ArrowLeft, Building2, MapPin, FileText, DollarSign, Edit, Settings } from "lucide-react"
+import { ExcluirEmpreendimentoDialog } from "@/components/empreendimentos/excluir-empreendimento-dialog"
+import { ParametroAtivoStatus } from "@/components/parametros/parametro-ativo-status"
 
 interface EmpreendimentoPageProps {
   params: {
@@ -53,6 +55,14 @@ export default async function EmpreendimentoPage({ params }: EmpreendimentoPageP
     notFound()
   }
 
+  // Buscar parâmetro de precificação ativo
+  const { data: parametroAtivo } = await supabase
+    .from("parametros_precificacao")
+    .select("id, nome, valor_m2_padrao, updated_at")
+    .eq("empreendimento_id", params.id)
+    .eq("ativo", true)
+    .single()
+
   // Buscar métricas de VGV
   const { data: vgvData } = await supabase.rpc("calcular_vgv_completo", { p_empreendimento_id: params.id }).single()
 
@@ -84,12 +94,23 @@ export default async function EmpreendimentoPage({ params }: EmpreendimentoPageP
             Voltar
           </Link>
         </Button>
+
+        <div className="flex space-x-2">
+          <Button variant="outline" className="border-gray-700 text-gray-300 hover:bg-gray-800" asChild>
+            <Link href={`/empreendimentos/${params.id}/editar`}>
+              <Edit className="mr-2 h-4 w-4" />
+              Editar
+            </Link>
+          </Button>
+
+          <ExcluirEmpreendimentoDialog empreendimentoId={params.id} empreendimentoNome={empreendimento.nome} />
+        </div>
       </div>
 
       <DashboardHeader heading={empreendimento.nome} text={empreendimento.tipo} />
 
       <div className="grid gap-6">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid gap-6 grid-cols-1 lg:grid-cols-3">
           <Card className="bg-gray-900 border-gray-800">
             <CardHeader>
               <CardTitle className="flex items-center text-white">
@@ -147,6 +168,8 @@ export default async function EmpreendimentoPage({ params }: EmpreendimentoPageP
           </Card>
         </div>
 
+        <ParametroAtivoStatus empreendimentoId={params.id} />
+
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
           <Card className="bg-gray-900 border-gray-800">
             <CardHeader className="pb-2">
@@ -187,17 +210,15 @@ export default async function EmpreendimentoPage({ params }: EmpreendimentoPageP
 
         <div className="flex justify-end space-x-4">
           <Button variant="outline" className="border-gray-700 text-gray-300 hover:bg-gray-800" asChild>
-            <Link href={`/empreendimentos/${params.id}/editar`}>Editar Empreendimento</Link>
+            <Link href={`/empreendimentos/${params.id}/parametros`}>
+              <Settings className="mr-2 h-4 w-4" />
+              Parâmetros de Precificação
+            </Link>
           </Button>
-
           <Button className="bg-aya-green hover:bg-opacity-90" asChild>
-            <Link href={`/empreendimentos/${params.id}/unidades`}>Gerenciar Unidades</Link>
-          </Button>
-
-          <Button variant="outline" className="border-gray-700 text-gray-300 hover:bg-gray-800" asChild>
-            <Link href={`/empreendimentos/${params.id}/importar-unidades`}>
-              <Upload className="mr-2 h-4 w-4" />
-              Importar Unidades
+            <Link href={`/empreendimentos/${params.id}/unidades`}>
+              <Building2 className="mr-2 h-4 w-4" />
+              Gerenciar Unidades
             </Link>
           </Button>
         </div>

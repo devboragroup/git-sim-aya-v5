@@ -12,10 +12,11 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/components/ui/use-toast"
-import { criarEmpreendimento } from "@/actions/empreendimentos"
+import { criarEmpreendimento, atualizarEmpreendimento } from "@/actions/empreendimentos"
 import { Icons } from "@/components/icons"
 
 const empreendimentoSchema = z.object({
+  id: z.string().optional(),
   nome: z.string().min(3, { message: "Nome deve ter pelo menos 3 caracteres" }),
   tipo: z.string().min(1, { message: "Tipo é obrigatório" }),
   endereco: z.string().min(5, { message: "Endereço deve ter pelo menos 5 caracteres" }),
@@ -34,21 +35,27 @@ const empreendimentoSchema = z.object({
 
 type EmpreendimentoFormValues = z.infer<typeof empreendimentoSchema>
 
-export function EmpreendimentoForm() {
+interface EmpreendimentoFormProps {
+  empreendimento?: any // Dados do empreendimento para edição
+}
+
+export function EmpreendimentoForm({ empreendimento }: EmpreendimentoFormProps) {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const { toast } = useToast()
+  const isEditing = !!empreendimento
 
   const form = useForm<EmpreendimentoFormValues>({
     resolver: zodResolver(empreendimentoSchema),
     defaultValues: {
-      nome: "",
-      tipo: "",
-      endereco: "",
-      registro: "",
-      descricao: "",
-      vgv_bruto_alvo: "",
-      percentual_permuta: "0",
+      id: empreendimento?.id || undefined,
+      nome: empreendimento?.nome || "",
+      tipo: empreendimento?.tipo || "",
+      endereco: empreendimento?.endereco || "",
+      registro: empreendimento?.registro || "",
+      descricao: empreendimento?.descricao || "",
+      vgv_bruto_alvo: empreendimento?.vgv_bruto_alvo?.toString() || "",
+      percentual_permuta: empreendimento?.percentual_permuta?.toString() || "0",
     },
   })
 
@@ -56,23 +63,41 @@ export function EmpreendimentoForm() {
     setIsLoading(true)
 
     try {
-      const result = await criarEmpreendimento(data)
+      if (isEditing) {
+        // Atualizar empreendimento existente
+        const result = await atualizarEmpreendimento(data)
 
-      if (result.error) {
-        throw new Error(result.error)
+        if (result.error) {
+          throw new Error(result.error)
+        }
+
+        toast({
+          title: "Empreendimento atualizado",
+          description: "O empreendimento foi atualizado com sucesso.",
+        })
+
+        router.push(`/empreendimentos/${empreendimento.id}`)
+      } else {
+        // Criar novo empreendimento
+        const result = await criarEmpreendimento(data)
+
+        if (result.error) {
+          throw new Error(result.error)
+        }
+
+        toast({
+          title: "Empreendimento criado",
+          description: "O empreendimento foi cadastrado com sucesso.",
+        })
+
+        router.push(`/empreendimentos/${result.id}`)
       }
 
-      toast({
-        title: "Empreendimento criado",
-        description: "O empreendimento foi cadastrado com sucesso.",
-      })
-
-      router.push(`/empreendimentos/${result.id}`)
       router.refresh()
     } catch (error: any) {
       toast({
-        title: "Erro ao criar empreendimento",
-        description: error.message || "Ocorreu um erro ao cadastrar o empreendimento.",
+        title: isEditing ? "Erro ao atualizar empreendimento" : "Erro ao criar empreendimento",
+        description: error.message || `Ocorreu um erro ao ${isEditing ? "atualizar" : "cadastrar"} o empreendimento.`,
         variant: "destructive",
       })
     } finally {
@@ -87,7 +112,7 @@ export function EmpreendimentoForm() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="space-y-2">
               <Label htmlFor="nome" className="text-white">
-                Nome do Empreendimento
+                Nome do Empreendimento <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="nome"
@@ -103,7 +128,7 @@ export function EmpreendimentoForm() {
 
             <div className="space-y-2">
               <Label htmlFor="tipo" className="text-white">
-                Tipo
+                Tipo <span className="text-red-500">*</span>
               </Label>
               <Select
                 disabled={isLoading}
@@ -128,7 +153,7 @@ export function EmpreendimentoForm() {
 
           <div className="space-y-2">
             <Label htmlFor="endereco" className="text-white">
-              Endereço
+              Endereço <span className="text-red-500">*</span>
             </Label>
             <Textarea
               id="endereco"
@@ -161,7 +186,7 @@ export function EmpreendimentoForm() {
 
             <div className="space-y-2">
               <Label htmlFor="vgv_bruto_alvo" className="text-white">
-                VGV Bruto Alvo (R$)
+                VGV Bruto Alvo (R$) <span className="text-red-500">*</span>
               </Label>
               <Input
                 id="vgv_bruto_alvo"
@@ -181,7 +206,7 @@ export function EmpreendimentoForm() {
 
           <div className="space-y-2">
             <Label htmlFor="percentual_permuta" className="text-white">
-              Percentual de Permuta (%)
+              Percentual de Permuta (%) <span className="text-red-500">*</span>
             </Label>
             <Input
               id="percentual_permuta"
@@ -229,7 +254,7 @@ export function EmpreendimentoForm() {
 
           <Button type="submit" className="bg-aya-green hover:bg-opacity-90" disabled={isLoading}>
             {isLoading && <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />}
-            Salvar Empreendimento
+            {isEditing ? "Atualizar" : "Salvar"} Empreendimento
           </Button>
         </CardFooter>
       </Card>

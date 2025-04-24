@@ -1,6 +1,7 @@
 import { createBrowserClient } from "@supabase/ssr"
 import type { Database } from "@/types/supabase"
 
+// Singleton pattern para evitar múltiplas instâncias
 let client: ReturnType<typeof createBrowserClient<Database>> | null = null
 
 export function createClientClient() {
