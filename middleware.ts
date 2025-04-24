@@ -6,12 +6,13 @@ export async function middleware(request: NextRequest) {
   const res = NextResponse.next()
   const supabase = createMiddlewareClient({ req: request, res })
 
+  // Na versão mais recente, usamos auth.getUser() em vez de auth.getSession()
   const {
-    data: { session },
-  } = await supabase.auth.getSession()
+    data: { user },
+  } = await supabase.auth.getUser()
 
   // Se não estiver autenticado e tentar acessar uma rota protegida
-  if (!session && !request.nextUrl.pathname.startsWith("/login")) {
+  if (!user && !request.nextUrl.pathname.startsWith("/login")) {
     return NextResponse.redirect(new URL("/login", request.url))
   }
 
