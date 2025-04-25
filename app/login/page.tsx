@@ -15,7 +15,12 @@ export const metadata: Metadata = {
 
 export default async function LoginPage() {
   // Verificar se o usuário já está autenticado e redirecionar se necessário
-  await checkAuthAndRedirect()
+  try {
+    await checkAuthAndRedirect()
+  } catch (error) {
+    console.error("Erro ao verificar autenticação:", error)
+    // Continuar renderizando a página de login mesmo se houver erro
+  }
 
   return (
     <div className="container relative h-screen flex-col items-center justify-center grid lg:max-w-none lg:grid-cols-2 lg:px-0">
@@ -40,7 +45,7 @@ export default async function LoginPage() {
             <p className="text-sm text-gray-400">Entre com seu e-mail e senha para acessar o sistema</p>
           </div>
           <ServerLoginForm />
-          <AuthDebugger />
+          {process.env.NODE_ENV === "development" && <AuthDebugger />}
           <p className="px-8 text-center text-sm text-gray-400">
             Ao continuar, você concorda com nossos{" "}
             <Link href="/terms" className="underline underline-offset-4 hover:text-aya-green">

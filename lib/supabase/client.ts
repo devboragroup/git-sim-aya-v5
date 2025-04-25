@@ -7,19 +7,29 @@ let clientInstance: ReturnType<typeof createBrowserClient<Database>> | null = nu
 export function createClientClient() {
   // Se estamos no servidor, sempre criar uma nova instância
   if (typeof window === "undefined") {
-    return createBrowserClient<Database>(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    )
+    try {
+      return createBrowserClient<Database>(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      )
+    } catch (error) {
+      console.error("[Supabase Client] Erro ao criar cliente no servidor:", error)
+      throw error
+    }
   }
 
   // No cliente, reutilizar a instância existente
   if (!clientInstance) {
-    console.log("[Supabase Client] Criando nova instância do cliente")
-    clientInstance = createBrowserClient<Database>(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-    )
+    try {
+      console.log("[Supabase Client] Criando nova instância do cliente")
+      clientInstance = createBrowserClient<Database>(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      )
+    } catch (error) {
+      console.error("[Supabase Client] Erro ao criar cliente no navegador:", error)
+      throw error
+    }
   } else {
     console.log("[Supabase Client] Reutilizando instância existente do cliente")
   }

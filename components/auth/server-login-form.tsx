@@ -79,7 +79,12 @@ export function ServerLoginForm() {
 
           // Atualizar a sessão no contexto de autenticação
           console.log("[ServerLoginForm] Atualizando sessão após login bem-sucedido")
-          await refreshSession()
+          try {
+            await refreshSession()
+          } catch (refreshError) {
+            console.error("[ServerLoginForm] Erro ao atualizar sessão:", refreshError)
+            // Continuar mesmo se houver erro ao atualizar a sessão
+          }
 
           // Se temos uma URL de redirecionamento, armazená-la
           if (result.redirectTo) {
@@ -154,7 +159,12 @@ export function ServerLoginForm() {
           setRedirectUrl("/dashboard")
 
           // Atualizar a sessão no contexto de autenticação
-          await refreshSession()
+          try {
+            await refreshSession()
+          } catch (refreshError) {
+            console.error("[ServerLoginForm] Erro ao atualizar sessão após redirecionamento:", refreshError)
+            // Continuar mesmo se houver erro ao atualizar a sessão
+          }
 
           toast({
             title: "Login bem-sucedido",
@@ -199,9 +209,15 @@ export function ServerLoginForm() {
       console.log("[ServerLoginForm] Redirecionando para:", url)
 
       // Atualizar a sessão antes de redirecionar
-      refreshSession().then(() => {
-        window.location.href = url
-      })
+      refreshSession()
+        .then(() => {
+          window.location.href = url
+        })
+        .catch((error) => {
+          console.error("[ServerLoginForm] Erro ao atualizar sessão antes do redirecionamento manual:", error)
+          // Continuar com o redirecionamento mesmo se houver erro
+          window.location.href = url
+        })
     } catch (e) {
       console.error("[ServerLoginForm] Erro no redirecionamento manual:", e)
       setErrorMessage(`Erro no redirecionamento: ${e instanceof Error ? e.message : String(e)}`)

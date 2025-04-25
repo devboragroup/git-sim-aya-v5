@@ -4,6 +4,9 @@ import { DashboardShell } from "@/components/dashboard/dashboard-shell"
 import { DashboardCards } from "@/components/dashboard/dashboard-cards"
 import { DashboardCharts } from "@/components/dashboard/dashboard-charts"
 
+// Forçar renderização dinâmica para evitar erros com cookies durante o build
+export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = {
   title: "Dashboard - Simulador AYA",
   description: "Visão geral do sistema",

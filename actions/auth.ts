@@ -100,12 +100,17 @@ export async function serverLogin(formData: FormData): Promise<AuthResult> {
       revalidatePath("/")
 
       // Definir um cookie especial para sinalizar ao cliente que deve atualizar sua sessão
-      cookies().set("auth_redirect", "true", {
-        path: "/",
-        maxAge: 60, // Aumentado para 60 segundos para garantir que o cliente tenha tempo de processar
-        httpOnly: false, // Precisa ser acessível via JavaScript
-        sameSite: "strict",
-      })
+      try {
+        cookies().set("auth_redirect", "true", {
+          path: "/",
+          maxAge: 60, // Aumentado para 60 segundos para garantir que o cliente tenha tempo de processar
+          httpOnly: false, // Precisa ser acessível via JavaScript
+          sameSite: "strict",
+        })
+      } catch (cookieError) {
+        console.error("[Auth Server Action] Erro ao definir cookie:", cookieError)
+        // Continuar mesmo se houver erro ao definir o cookie
+      }
 
       try {
         redirect(redirectTo)
@@ -168,20 +173,25 @@ export async function serverLogin(formData: FormData): Promise<AuthResult> {
     console.log("[Auth Server Action] Login bem-sucedido para:", data.user.email)
 
     // Definir um cookie especial para sinalizar ao cliente que deve atualizar sua sessão
-    cookies().set("auth_redirect", "true", {
-      path: "/",
-      maxAge: 60, // Aumentado para 60 segundos
-      httpOnly: false, // Precisa ser acessível via JavaScript
-      sameSite: "strict",
-    })
+    try {
+      cookies().set("auth_redirect", "true", {
+        path: "/",
+        maxAge: 60, // Aumentado para 60 segundos
+        httpOnly: false, // Precisa ser acessível via JavaScript
+        sameSite: "strict",
+      })
 
-    // Definir um cookie com o timestamp do login para verificação de sessão
-    cookies().set("auth_timestamp", Date.now().toString(), {
-      path: "/",
-      maxAge: 60 * 60 * 24, // 24 horas
-      httpOnly: true,
-      sameSite: "strict",
-    })
+      // Definir um cookie com o timestamp do login para verificação de sessão
+      cookies().set("auth_timestamp", Date.now().toString(), {
+        path: "/",
+        maxAge: 60 * 60 * 24, // 24 horas
+        httpOnly: true,
+        sameSite: "strict",
+      })
+    } catch (cookieError) {
+      console.error("[Auth Server Action] Erro ao definir cookies:", cookieError)
+      // Continuar mesmo se houver erro ao definir os cookies
+    }
 
     // Revalidar caminhos para garantir que os dados estejam atualizados
     revalidatePath("/dashboard")
@@ -294,12 +304,17 @@ export async function checkAuthAndRedirect(destination = "/dashboard") {
 
     if (data.session) {
       // Definir um cookie especial para sinalizar ao cliente que deve atualizar sua sessão
-      cookies().set("auth_redirect", "true", {
-        path: "/",
-        maxAge: 60,
-        httpOnly: false,
-        sameSite: "strict",
-      })
+      try {
+        cookies().set("auth_redirect", "true", {
+          path: "/",
+          maxAge: 60,
+          httpOnly: false,
+          sameSite: "strict",
+        })
+      } catch (cookieError) {
+        console.error("[Auth Server Action] Erro ao definir cookie:", cookieError)
+        // Continuar mesmo se houver erro ao definir o cookie
+      }
 
       redirect(destination)
     }
@@ -347,17 +362,22 @@ export async function serverLogout() {
     }
 
     // Limpar cookies relacionados à autenticação
-    const cookieStore = cookies()
-    cookieStore.getAll().forEach((cookie) => {
-      if (
-        cookie.name.includes("supabase") ||
-        cookie.name.includes("sb-") ||
-        cookie.name === "auth_redirect" ||
-        cookie.name === "auth_timestamp"
-      ) {
-        cookieStore.delete(cookie.name)
-      }
-    })
+    try {
+      const cookieStore = cookies()
+      cookieStore.getAll().forEach((cookie) => {
+        if (
+          cookie.name.includes("supabase") ||
+          cookie.name.includes("sb-") ||
+          cookie.name === "auth_redirect" ||
+          cookie.name === "auth_timestamp"
+        ) {
+          cookieStore.delete(cookie.name)
+        }
+      })
+    } catch (cookieError) {
+      console.error("[Auth Server Action] Erro ao limpar cookies:", cookieError)
+      // Continuar mesmo se houver erro ao limpar os cookies
+    }
 
     console.log("[Auth Server Action] Logout bem-sucedido, redirecionando para login")
 

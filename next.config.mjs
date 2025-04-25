@@ -22,7 +22,7 @@ const nextConfig = {
   experimental: {
     // serverActions agora é um objeto em vez de booleano
     serverActions: {
-      allowedOrigins: ['localhost:3000', 'simulador-aya-v5.vercel.app'],
+      allowedOrigins: ['localhost:3000', 'simuladorayav5.vercel.app'],
     },
   },
   poweredByHeader: false,

@@ -8,10 +8,17 @@ export async function middleware(request: NextRequest) {
     const { supabase, response } = createServerClient(request)
 
     // Verificar se o usuário está autenticado
-    const {
-      data: { session },
-      error: sessionError,
-    } = await supabase.auth.getSession()
+    let session = null
+    let sessionError = null
+
+    try {
+      const sessionResult = await supabase.auth.getSession()
+      session = sessionResult.data.session
+      sessionError = sessionResult.error
+    } catch (error) {
+      console.error(`[Middleware] Erro ao obter sessão: ${error instanceof Error ? error.message : String(error)}`)
+      // Continuar sem sessão
+    }
 
     // Registrar informações de depuração
     console.log(`[Middleware] URL: ${request.nextUrl.pathname}`)
