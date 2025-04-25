@@ -1,5 +1,6 @@
+import { NextResponse } from "next/server"
+import type { NextRequest } from "next/server"
 import { createServerClient as createClient } from "@supabase/ssr"
-import { type NextRequest, NextResponse } from "next/server"
 
 export function createServerClient(request: NextRequest) {
   // Create an unmodified response

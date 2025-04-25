@@ -5,6 +5,9 @@ import { AuthDebugger } from "@/components/auth/auth-debugger"
 import { Logo } from "@/components/ui/logo"
 import { checkAuthAndRedirect } from "@/actions/auth"
 
+// Forçar renderização dinâmica para evitar erros com cookies durante o build
+export const dynamic = "force-dynamic"
+
 export const metadata: Metadata = {
   title: "Login - Simulador AYA",
   description: "Faça login para acessar o sistema",

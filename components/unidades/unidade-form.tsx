@@ -12,8 +12,8 @@ import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/components/ui/use-toast"
 import { criarUnidade, atualizarUnidade } from "@/actions/unidades"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Icons } from "@/components/icons"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 const unidadeSchema = z.object({
   id: z.string().optional(),
@@ -109,7 +109,7 @@ export function UnidadeForm({ empreendimentoId, unidade }: UnidadeFormProps) {
           description: "A unidade foi atualizada com sucesso.",
         })
 
-        router.push(`/empreendimentos/${empreendimentoId}/unidades/${unidade.id}`)
+        router.push(`/empreendimentos/${empreendimentoId}/unidades`)
       } else {
         // Criar nova unidade
         const result = await criarUnidade(unidadeData)
@@ -206,7 +206,7 @@ export function UnidadeForm({ empreendimentoId, unidade }: UnidadeFormProps) {
                     Tipo de Unidade
                   </Label>
                   <Select
-                    value={form.watch("tipo_unidade")}
+                    defaultValue={form.getValues("tipo_unidade") || form.getValues("tipo")}
                     onValueChange={(value) => form.setValue("tipo_unidade", value)}
                     disabled={isLoading}
                   >
@@ -236,6 +236,9 @@ export function UnidadeForm({ empreendimentoId, unidade }: UnidadeFormProps) {
                     disabled={isLoading}
                     {...form.register("pavimento")}
                   />
+                  {form.formState.errors.pavimento && (
+                    <p className="text-sm text-red-500">{form.formState.errors.pavimento.message}</p>
+                  )}
                 </div>
               </div>
 
@@ -248,7 +251,7 @@ export function UnidadeForm({ empreendimentoId, unidade }: UnidadeFormProps) {
                     id="area_privativa"
                     type="number"
                     step="0.01"
-                    min="0"
+                    min="0.01"
                     placeholder="0.00"
                     className="bg-gray-800 border-gray-700 text-white"
                     disabled={isLoading}
@@ -273,6 +276,9 @@ export function UnidadeForm({ empreendimentoId, unidade }: UnidadeFormProps) {
                     disabled={isLoading}
                     {...form.register("area_total")}
                   />
+                  {form.formState.errors.area_total && (
+                    <p className="text-sm text-red-500">{form.formState.errors.area_total.message}</p>
+                  )}
                 </div>
               </div>
             </TabsContent>
@@ -379,7 +385,7 @@ export function UnidadeForm({ empreendimentoId, unidade }: UnidadeFormProps) {
                     Orientação Solar
                   </Label>
                   <Select
-                    value={form.watch("orientacao_solar") || ""}
+                    defaultValue={form.getValues("orientacao_solar") || ""}
                     onValueChange={(value) => form.setValue("orientacao_solar", value)}
                     disabled={isLoading}
                   >
@@ -387,6 +393,7 @@ export function UnidadeForm({ empreendimentoId, unidade }: UnidadeFormProps) {
                       <SelectValue placeholder="Selecione a orientação solar" />
                     </SelectTrigger>
                     <SelectContent className="bg-gray-800 border-gray-700 text-white">
+                      <SelectItem value="nao_definida">Não definida</SelectItem>
                       <SelectItem value="NORTE">Norte</SelectItem>
                       <SelectItem value="SUL">Sul</SelectItem>
                       <SelectItem value="LESTE">Leste</SelectItem>
@@ -408,7 +415,7 @@ export function UnidadeForm({ empreendimentoId, unidade }: UnidadeFormProps) {
                   Status da Unidade
                 </Label>
                 <Select
-                  value={form.watch("status") || "disponivel"}
+                  defaultValue={form.getValues("status") || "disponivel"}
                   onValueChange={(value) => form.setValue("status", value)}
                   disabled={isLoading}
                 >
