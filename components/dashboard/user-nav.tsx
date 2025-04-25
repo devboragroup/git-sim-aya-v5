@@ -1,9 +1,8 @@
 "use client"
 
 import Link from "next/link"
-
+import { useState } from "react"
 import type { User } from "@supabase/supabase-js"
-import { useAuth } from "@/contexts/auth-context"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -15,15 +14,43 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { serverLogout } from "@/actions/auth"
+import { Icons } from "@/components/icons"
+import { useToast } from "@/components/ui/use-toast"
 
 interface UserNavProps {
   user: User
 }
 
 export function UserNav({ user }: UserNavProps) {
-  const { signOut } = useAuth()
+  const [isLoggingOut, setIsLoggingOut] = useState(false)
+  const { toast } = useToast()
   const initials = user.email ? user.email.substring(0, 2).toUpperCase() : "U"
   const email = user.email || "Usuário"
+
+  const handleLogout = async () => {
+    try {
+      setIsLoggingOut(true)
+      toast({
+        title: "Saindo...",
+        description: "Você será redirecionado para a página de login",
+      })
+
+      // A Server Action irá redirecionar automaticamente
+      await serverLogout()
+
+      // Isso só será executado se o redirecionamento falhar
+      window.location.href = "/login"
+    } catch (error) {
+      console.error("Erro ao fazer logout:", error)
+      toast({
+        title: "Erro ao sair",
+        description: "Ocorreu um erro ao tentar sair. Por favor, tente novamente.",
+        variant: "destructive",
+      })
+      setIsLoggingOut(false)
+    }
+  }
 
   return (
     <DropdownMenu>
@@ -52,7 +79,16 @@ export function UserNav({ user }: UserNavProps) {
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
-        <DropdownMenuItem onClick={() => signOut()}>Sair</DropdownMenuItem>
+        <DropdownMenuItem onClick={handleLogout} disabled={isLoggingOut}>
+          {isLoggingOut ? (
+            <>
+              <Icons.spinner className="mr-2 h-4 w-4 animate-spin" />
+              Saindo...
+            </>
+          ) : (
+            "Sair"
+          )}
+        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   )

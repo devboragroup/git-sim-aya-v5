@@ -60,7 +60,8 @@
     "zod": "latest",
     "@supabase/supabase-js": "latest",
     "@supabase/ssr": "latest",
-    "@supabase/auth-helpers-nextjs": "latest"
+    "@supabase/auth-helpers-nextjs": "latest",
+    "xlsx": "latest"
   },
   "devDependencies": {
     "@types/node": "^22",

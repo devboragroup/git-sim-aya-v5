@@ -1,16 +1,34 @@
 import { createBrowserClient } from "@supabase/ssr"
 import type { Database } from "@/types/supabase"
 
-// Singleton pattern para evitar múltiplas instâncias
-let client: ReturnType<typeof createBrowserClient<Database>> | null = null
+// Variável global para armazenar a instância do cliente
+let clientInstance: ReturnType<typeof createBrowserClient<Database>> | null = null
 
 export function createClientClient() {
-  if (client) return client
+  // Se estamos no servidor, sempre criar uma nova instância
+  if (typeof window === "undefined") {
+    return createBrowserClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    )
+  }
 
-  client = createBrowserClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
-  )
+  // No cliente, reutilizar a instância existente
+  if (!clientInstance) {
+    console.log("[Supabase Client] Criando nova instância do cliente")
+    clientInstance = createBrowserClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    )
+  } else {
+    console.log("[Supabase Client] Reutilizando instância existente do cliente")
+  }
 
-  return client
+  return clientInstance
+}
+
+// Função para limpar a instância (útil para testes e logout completo)
+export function clearClientInstance() {
+  clientInstance = null
+  console.log("[Supabase Client] Instância do cliente limpa")
 }
